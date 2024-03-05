@@ -53,6 +53,17 @@ describe('BookController (e2e)', () => {
       });
   });
 
+  it('POST /book (in future)', () => {
+    return request(httpServer)
+      .post('/book')
+      .send({
+        title: 'Title 1',
+        author: 'Author 1',
+        releaseYear: 2025,
+      })
+      .expect(400);
+  });
+
   it('PUT /book/:id', async () => {
     const addedBook = await request(httpServer).post('/book').send({
       title: 'Title 1',

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookService } from './book.service';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BookDto } from './book/book.dto';
 
 describe('BookService', () => {
   let service: BookService;
@@ -37,6 +38,13 @@ describe('BookService', () => {
   });
 
   describe('Create', () => {
+    it('Should throw an error because not all field are provided', () => {
+      const book = {} as BookDto;
+      expect(() => {
+        service.createBook(book);
+      }).toThrow(BadRequestException);
+    });
+
     it('Should return the added book', () => {
       const book = {
         title: 'Book 1',
@@ -60,6 +68,17 @@ describe('BookService', () => {
         id: addedBookId,
         ...book,
       });
+    });
+
+    it('Should throw and error because the release date in the future', () => {
+      const book = {
+        title: 'Book 1',
+        author: 'Author 1',
+        releaseYear: 2025,
+      };
+      expect(() => {
+        service.createBook(book);
+      }).toThrow(BadRequestException);
     });
   });
 
@@ -95,6 +114,23 @@ describe('BookService', () => {
       expect(() => {
         service.updateBook(addedBook.id + 1, updateBook);
       }).toThrow(NotFoundException);
+    });
+
+    it('Should throw exception because release year in the future', () => {
+      const book = {
+        title: 'Book 1',
+        author: 'Author 1',
+        releaseYear: 2021,
+      };
+      const addedBook = service.createBook(book);
+      const updateBook = {
+        title: 'Book 123',
+        author: 'Author 123123',
+        releaseYear: 2027,
+      };
+      expect(() => {
+        service.updateBook(addedBook.id + 1, updateBook);
+      }).toThrow(BadRequestException);
     });
   });
 

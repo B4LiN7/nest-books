@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Book } from './book/book';
 import { BookDto } from './book/book.dto';
 
@@ -19,6 +23,11 @@ export class BookService {
   }
 
   createBook(book: BookDto): Book {
+    if (!book.title || !book.author || !book.releaseYear) {
+      throw new BadRequestException('Some book properties are missing');
+    } else if (book.releaseYear > new Date().getFullYear()) {
+      throw new BadRequestException('Release year cannot be in the future');
+    }
     const usedIds = this.books.map((book) => book.id);
     const newId = Math.max(...usedIds, 0) + 1;
     const newBook = { id: newId, ...book } as Book;
@@ -27,6 +36,9 @@ export class BookService {
   }
 
   updateBook(id: number, book: BookDto): Book {
+    if (book.releaseYear > new Date().getFullYear()) {
+      throw new BadRequestException('Release year cannot be in the future');
+    }
     const foundBook = this.getBook(id);
     Object.assign(foundBook, book);
     return this.getBook(id);
