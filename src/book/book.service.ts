@@ -23,11 +23,7 @@ export class BookService {
   }
 
   createBook(book: BookDto): Book {
-    if (!book.title || !book.author || !book.releaseYear) {
-      throw new BadRequestException('Some book properties are missing');
-    } else if (book.releaseYear > new Date().getFullYear()) {
-      throw new BadRequestException('Release year cannot be in the future');
-    }
+    this.checkBook(book);
     const usedIds = this.books.map((book) => book.id);
     const newId = Math.max(...usedIds, 0) + 1;
     const newBook = { id: newId, ...book } as Book;
@@ -36,18 +32,34 @@ export class BookService {
   }
 
   updateBook(id: number, book: BookDto): Book {
-    if (book.releaseYear > new Date().getFullYear()) {
-      throw new BadRequestException('Release year cannot be in the future');
-    }
+    this.checkId(id);
+    this.checkBook(book);
     const foundBook = this.getBook(id);
     Object.assign(foundBook, book);
     return this.getBook(id);
   }
 
   deleteBook(id: number): Book {
+    this.checkId(id);
     const foundBook = this.getBook(id);
     const foundBookIndex = this.books.indexOf(foundBook);
     this.books.splice(foundBookIndex, 1);
     return foundBook;
+  }
+
+  private checkId(id: number): void {
+    if (isNaN(id)) {
+      throw new BadRequestException('ID must be a number');
+    } else if (id < 0) {
+      throw new BadRequestException('ID must be a positive number');
+    }
+  }
+
+  private checkBook(book: BookDto): void {
+    if (!book.title || !book.author || !book.releaseYear) {
+      throw new BadRequestException('Some book properties are missing');
+    } else if (book.releaseYear > new Date().getFullYear()) {
+      throw new BadRequestException('Release year cannot be in the future');
+    }
   }
 }
